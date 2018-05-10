@@ -7,21 +7,13 @@ import Mouse from './lib/Mouse';
 
 
 class Walker extends Entity {
-    speed: number;
-    acceleration: Vector;
-    topSpeed: number;
-    
-    constructor(public location: Vector, mass: number) {
+    constructor(location: Vector, mass: number) {
         super(location, mass);
-        this.speed = 20;
-        this.acceleration = new Vector(0, 0);
-        this.velocity = new Vector(0, 0);
-        this.topSpeed = 10;
     }
 
     checkEdges() {
-        if(this.location.x > 600 - this.width) {
-            this.location.x = 600 - this.width;
+        if(this.location.x > 900 - this.width) {
+            this.location.x = 900 - this.width;
             this.velocity.x = 0;
         }
         if(this.location.x < 0) {
@@ -39,7 +31,7 @@ class Walker extends Entity {
     }
 
     update(delta: number, mouse: Mouse) {
-        this.applyForce(mouse.forceNormal(this.location));
+        // this.applyForce(mouse.forceNormal(this.location));
         super.update(delta, mouse);
         this.checkEdges();
     }

@@ -3,26 +3,26 @@ import Walker from './Walker';
 import Vector from './lib/Vector';
 import Mouse from './lib/Mouse';
 import Random from './lib/Random';
-import StaticBody from './lib/StaticBody';
-import Body from './lib/Body';
+import Liquid from './lib/Liquid';
+import Attractor from './lib/Attractor';
 
-
-const WIDTH = 600;
+const WIDTH = 900;
 const HEIGHT = 600;
 
 let entities: Entity[] = [];
 let lastRender = 0;
 let ctx: CanvasRenderingContext2D | null;
 let mouse: Mouse;
-const blocks: Array<Body> = [];
-
+let liquids: Array<Liquid> = [];
+const moon = new Attractor(new Vector(300, 300), 60);
 
 const render = () => {
     if(ctx) {
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
-        for(let block of blocks) {
-            block.draw(ctx);
+        for(let liquid of liquids) {
+            liquid.draw(ctx);
         }
+        moon.draw(ctx);
         for(const ent of entities) {
             ent.draw(ctx);
         }
@@ -31,15 +31,14 @@ const render = () => {
 
 const update = delta => {
     for(const ent of entities) {
-        const gravity = new Vector(0, 0.5 * ent.mass);
+        // const gravity = new Vector(0, 0.5 * ent.mass);
         // ent.applyForce(gravity);
-        const old_loc = ent.location;
+        const gf = moon.gravityForce(ent);
+        ent.applyForce(gf);
         ent.update(delta, mouse);
-        for(let block of blocks) {
-            if(block.collidesWith(ent)) {
-                ent.location = old_loc;
-                ent.velocity = new Vector(0, 0);
-                ent.acceleration = new Vector(0, 0);
+        for(let liquid of liquids) {
+            if(ent.collidesWith(liquid)) {
+                ent.applyForce(ent.drag(liquid.coefficient));
             }
         }
     }
@@ -75,15 +74,25 @@ function makeWalker(): Walker {
     return new Walker(loc, mass);
 }
 
-const main = () => {
-    const w = new Walker(new Vector(100, 400), 10);
-    entities.push(w);
-    blocks.push(new StaticBody(new Vector(100, 100), 30, 30));
-    blocks.push(new StaticBody(new Vector(300, 400), 30, 70));
+function initDOM() {
     const canvas = createCanvas();
-    mouse = new Mouse(canvas);
-    document.body.appendChild(canvas);
+    const mainDiv = document.createElement('div');
+    const h1 = document.createElement('h1');
     ctx = canvas.getContext('2d');
+    mouse = new Mouse(canvas);
+
+    h1.setAttribute('id', 'velocity');
+    mainDiv.appendChild(canvas);
+    mainDiv.appendChild(h1);
+
+    document.body.appendChild(mainDiv);
+}
+
+const main = () => {
+    initDOM();
+    const w = new Walker(new Vector(100, 0), 10);
+    w.applyForce(new Vector(6, 0));
+    entities.push(w);
     window.requestAnimationFrame(loop);
 }
 
